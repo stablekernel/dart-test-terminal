@@ -9,8 +9,8 @@ import 'dart:io';
 import 'package:meta/meta.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 
-/// A [Terminal] with additional behavior for managing a 'Dart package' directory.
-class ProjectTerminal extends Terminal {
+/// A [CommandLineAgent] with additional behavior for managing a 'Dart package' directory.
+class ProjectAgent extends CommandLineAgent {
   /// Creates a new package and terminal on that package's working directory.
   ///
   /// Make sure to call [tearDownAll] in your test's method of the same name to
@@ -18,7 +18,7 @@ class ProjectTerminal extends Terminal {
   ///
   /// Both [dependencies] and [devDependencies] are a valid dependency map,
   /// e.g. `{"aqueduct": "^3.0.0"}` or `{"relative" : {"path" : "../"}}`
-  ProjectTerminal(this.name, {Map<String, dynamic> dependencies, Map<String, dynamic> devDependencies})
+  ProjectAgent(this.name, {Map<String, dynamic> dependencies, Map<String, dynamic> devDependencies})
     : super(Directory.fromUri(projectsDirectory.uri.resolve("$name/"))) {
     if (!projectsDirectory.existsSync()) {
       projectsDirectory.createSync();
@@ -33,7 +33,7 @@ class ProjectTerminal extends Terminal {
     addOrReplaceFile(libDir.uri.resolve("$name.dart").path, "");
   }
 
-  ProjectTerminal.existing(Uri uri) : super(Directory.fromUri(uri)) {
+  ProjectAgent.existing(Uri uri) : super(Directory.fromUri(uri)) {
     final pubspecFile = File.fromUri(workingDirectory.uri.resolve("pubspec.yaml"));
     if (!pubspecFile.existsSync()) {
       throw ArgumentError("the uri '$uri' is not a Dart project directory; does not contain pubspec.yaml");
@@ -154,14 +154,14 @@ $contents
 }
 
 /// A utility for manipulating files and directories in [workingDirectory].
-class Terminal {
-  Terminal(this.workingDirectory, {bool create = true}) {
+class CommandLineAgent {
+  CommandLineAgent(this.workingDirectory, {bool create = true}) {
     if (create) {
       workingDirectory.createSync(recursive: true);
     }
   }
 
-  Terminal.current() : this(Directory.current);
+  CommandLineAgent.current() : this(Directory.current);
 
   final Directory workingDirectory;
 
