@@ -18,8 +18,9 @@ class ProjectAgent extends CommandLineAgent {
   ///
   /// Both [dependencies] and [devDependencies] are a valid dependency map,
   /// e.g. `{"aqueduct": "^3.0.0"}` or `{"relative" : {"path" : "../"}}`
-  ProjectAgent(this.name, {Map<String, dynamic> dependencies, Map<String, dynamic> devDependencies})
-    : super(Directory.fromUri(projectsDirectory.uri.resolve("$name/"))) {
+  ProjectAgent(this.name,
+      {Map<String, dynamic> dependencies, Map<String, dynamic> devDependencies})
+      : super(Directory.fromUri(projectsDirectory.uri.resolve("$name/"))) {
     if (!projectsDirectory.existsSync()) {
       projectsDirectory.createSync();
     }
@@ -29,14 +30,17 @@ class ProjectAgent extends CommandLineAgent {
     libDir.createSync(recursive: true);
 
     addOrReplaceFile("analysis_options.yaml", _analysisOptionsContents);
-    addOrReplaceFile("pubspec.yaml", _pubspecContents(name, dependencies, devDependencies));
+    addOrReplaceFile(
+        "pubspec.yaml", _pubspecContents(name, dependencies, devDependencies));
     addOrReplaceFile(libDir.uri.resolve("$name.dart").path, "");
   }
 
   ProjectAgent.existing(Uri uri) : super(Directory.fromUri(uri)) {
-    final pubspecFile = File.fromUri(workingDirectory.uri.resolve("pubspec.yaml"));
+    final pubspecFile =
+        File.fromUri(workingDirectory.uri.resolve("pubspec.yaml"));
     if (!pubspecFile.existsSync()) {
-      throw ArgumentError("the uri '$uri' is not a Dart project directory; does not contain pubspec.yaml");
+      throw ArgumentError(
+          "the uri '$uri' is not a Dart project directory; does not contain pubspec.yaml");
     }
 
     final pubspec = Pubspec.parse(pubspecFile.readAsStringSync());
@@ -45,7 +49,7 @@ class ProjectAgent extends CommandLineAgent {
 
   /// Temporary directory where projects are stored ('$PWD/tmp')
   static Directory get projectsDirectory =>
-    Directory.fromUri(Directory.current.uri.resolve("tmp/"));
+      Directory.fromUri(Directory.current.uri.resolve("tmp/"));
 
   /// Name of this project
   String name;
@@ -63,7 +67,7 @@ class ProjectAgent extends CommandLineAgent {
   /// Directory of lib/src/ in project
   Directory get srcDirectory {
     return Directory.fromUri(
-      workingDirectory.uri.resolve("lib/").resolve("src/"));
+        workingDirectory.uri.resolve("lib/").resolve("src/"));
   }
 
   /// Deletes [projectsDirectory]. Call after tests are complete
@@ -100,7 +104,8 @@ class ProjectAgent extends CommandLineAgent {
     return buf.toString();
   }
 
-  String _pubspecContents(String name, Map<String, dynamic> deps, Map<String, dynamic> devDeps) {
+  String _pubspecContents(
+      String name, Map<String, dynamic> deps, Map<String, dynamic> devDeps) {
     return """
 name: $name
 description: desc
@@ -175,8 +180,8 @@ class CommandLineAgent {
     srcDir.listSync().forEach((fse) {
       if (fse is File) {
         final outPath = dstDir.uri
-          .resolve(fse.uri.pathSegments.last)
-          .toFilePath(windows: Platform.isWindows);
+            .resolve(fse.uri.pathSegments.last)
+            .toFilePath(windows: Platform.isWindows);
         fse.copySync(outPath);
       } else if (fse is Directory) {
         final segments = fse.uri.pathSegments;
@@ -192,12 +197,16 @@ class CommandLineAgent {
   /// [contents] is the string contents of the file
   /// [imports] are import uri strings, e.g. 'package:aqueduct/aqueduct.dart' (don't use quotes)
   void addOrReplaceFile(String path, String contents,
-    {List<String> imports = const []}) {
+      {List<String> imports = const []}) {
     final pathComponents = path.split("/");
+    print("Path Components: ${pathComponents}");
     final relativeDirectoryComponents =
-    pathComponents.sublist(0, pathComponents.length - 1);
-    final directory = Directory.fromUri(relativeDirectoryComponents.fold(
-      workingDirectory.uri, (Uri prev, elem) => prev.resolve("$elem/")));
+        pathComponents.sublist(0, pathComponents.length - 1);
+    print("Relative: $relativeDirectoryComponents");
+    final uri = relativeDirectoryComponents.fold(
+      workingDirectory.uri, (Uri prev, elem) => prev.resolve("$elem/"));
+    print("Uri: $uri");
+    final directory = Directory.fromUri(uri);
     if (!directory.existsSync()) {
       directory.createSync(recursive: true);
     }
@@ -215,9 +224,9 @@ class CommandLineAgent {
   void modifyFile(String path, String contents(String current)) {
     final pathComponents = path.split("/");
     final relativeDirectoryComponents =
-    pathComponents.sublist(0, pathComponents.length - 1);
+        pathComponents.sublist(0, pathComponents.length - 1);
     final directory = Directory.fromUri(relativeDirectoryComponents.fold(
-      workingDirectory.uri, (Uri prev, elem) => prev.resolve("$elem/")));
+        workingDirectory.uri, (Uri prev, elem) => prev.resolve("$elem/")));
     final file = File.fromUri(directory.uri.resolve(pathComponents.last));
     if (!file.existsSync()) {
       throw ArgumentError("File at '${file.uri}' doesn't exist.");
@@ -230,9 +239,9 @@ class CommandLineAgent {
   File getFile(String path) {
     final pathComponents = path.split("/");
     final relativeDirectoryComponents =
-    pathComponents.sublist(0, pathComponents.length - 1);
+        pathComponents.sublist(0, pathComponents.length - 1);
     final directory = Directory.fromUri(relativeDirectoryComponents.fold(
-      workingDirectory.uri, (Uri prev, elem) => prev.resolve("$elem/")));
+        workingDirectory.uri, (Uri prev, elem) => prev.resolve("$elem/")));
     final file = File.fromUri(directory.uri.resolve(pathComponents.last));
     if (!file.existsSync()) {
       return null;
@@ -248,8 +257,8 @@ class CommandLineAgent {
 
     final cmd = Platform.isWindows ? "pub.bat" : "pub";
     var result = await Process.run(cmd, args,
-      workingDirectory: workingDirectory.absolute.path, runInShell: true)
-      .timeout(const Duration(seconds: 45));
+            workingDirectory: workingDirectory.absolute.path, runInShell: true)
+        .timeout(const Duration(seconds: 45));
 
     if (result.exitCode != 0) {
       throw Exception("${result.stderr}");
