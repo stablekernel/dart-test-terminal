@@ -32,7 +32,7 @@ class ProjectAgent extends CommandLineAgent {
     addOrReplaceFile("analysis_options.yaml", _analysisOptionsContents);
     addOrReplaceFile(
         "pubspec.yaml", _pubspecContents(name, dependencies, devDependencies));
-    addOrReplaceFile(libDir.uri.resolve("$name.dart").path, "");
+    addOrReplaceFile("lib/$name.dart", "");
   }
 
   ProjectAgent.existing(Uri uri) : super(Directory.fromUri(uri)) {
@@ -204,7 +204,7 @@ class CommandLineAgent {
         pathComponents.sublist(0, pathComponents.length - 1);
     print("Relative: $relativeDirectoryComponents");
     final uri = relativeDirectoryComponents.fold(
-      workingDirectory.uri, (Uri prev, elem) => prev.resolve("$elem/"));
+        workingDirectory.uri, (Uri prev, elem) => prev.resolve("$elem/"));
     print("Uri: $uri");
     final directory = Directory.fromUri(uri);
     if (!directory.existsSync()) {
@@ -215,6 +215,29 @@ class CommandLineAgent {
     final directives = imports.map((i) => "import '$i';").join("\n");
     file.writeAsStringSync("$directives\n$contents");
   }
+
+/*
+Path Components: [analysis_options.yaml]
+Relative: []
+Uri: file:///C:/projects/dart-test-terminal/tmp/test_project/
+
+Path Components: [pubspec.yaml]
+Relative: []
+Uri: file:///C:/projects/dart-test-terminal/tmp/test_project/
+
+Path Components: [, C:, projects, dart-test-terminal, tmp, test_project, lib, test_project.dart]
+Relative: [, C:, projects, dart-test-terminal, tmp, test_project, lib]
+Uri: c:/projects/dart-test-terminal/tmp/test_project/lib/
+
+ */
+
+  /*
+  Unsupported operation: Cannot extract a file path from a c URI
+  dart:io                                                    new Directory.fromUri
+  package:command_line_agent/command_line_agent.dart 209:33  CommandLineAgent.addOrReplaceFile
+  package:command_line_agent/command_line_agent.dart 35:5    new ProjectAgent
+  test\project_agent_test.dart 6:19
+ */
 
   /// Updates the contents of an existing file
   ///
