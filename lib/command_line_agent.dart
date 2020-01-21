@@ -199,13 +199,13 @@ class CommandLineAgent {
   void addOrReplaceFile(String path, String contents,
       {List<String> imports = const []}) {
     final pathComponents = path.split("/");
-    print("Path Components: ${pathComponents}");
+
     final relativeDirectoryComponents =
         pathComponents.sublist(0, pathComponents.length - 1);
-    print("Relative: $relativeDirectoryComponents");
+
     final uri = relativeDirectoryComponents.fold(
         workingDirectory.uri, (Uri prev, elem) => prev.resolve("$elem/"));
-    print("Uri: $uri");
+
     final directory = Directory.fromUri(uri);
     if (!directory.existsSync()) {
       directory.createSync(recursive: true);
