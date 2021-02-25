@@ -91,7 +91,7 @@ class ProjectAgent extends CommandLineAgent {
     }
     final indentString = indentBuffer.toString();
 
-    m?.forEach((k, v) {
+    m.forEach((k, v) {
       buf.write("$indentString$k: ");
       if (v is String) {
         buf.writeln("$v");
