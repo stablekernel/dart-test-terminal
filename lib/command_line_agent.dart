@@ -6,8 +6,7 @@ library terminal;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:meta/meta.dart';
-import 'package:pubspec_parse/pubspec_parse.dart';
+import 'package:pubspec2/pubspec2.dart';
 
 /// A [CommandLineAgent] with additional behavior for managing a 'Dart package' directory.
 class ProjectAgent extends CommandLineAgent {
@@ -19,7 +18,8 @@ class ProjectAgent extends CommandLineAgent {
   /// Both [dependencies] and [devDependencies] are a valid dependency map,
   /// e.g. `{"aqueduct": "^3.0.0"}` or `{"relative" : {"path" : "../"}}`
   ProjectAgent(this.name,
-      {Map<String, dynamic> dependencies, Map<String, dynamic> devDependencies})
+      {Map<String, dynamic> dependencies = const {},
+      Map<String, dynamic> devDependencies = const {}})
       : super(Directory.fromUri(projectsDirectory.uri.resolve("$name/"))) {
     if (!projectsDirectory.existsSync()) {
       projectsDirectory.createSync();
@@ -43,8 +43,8 @@ class ProjectAgent extends CommandLineAgent {
           "the uri '$uri' is not a Dart project directory; does not contain pubspec.yaml");
     }
 
-    final pubspec = Pubspec.parse(pubspecFile.readAsStringSync());
-    name = pubspec.name;
+    final pubspec = PubSpec.fromYamlString(pubspecFile.readAsStringSync());
+    name = pubspec.name!;
   }
 
   /// Temporary directory where projects are stored ('$PWD/tmp')
@@ -52,7 +52,7 @@ class ProjectAgent extends CommandLineAgent {
       Directory.fromUri(Directory.current.uri.resolve("tmp/"));
 
   /// Name of this project
-  String name;
+  late String name;
 
   /// Directory of lib/ in project
   Directory get libraryDirectory {
@@ -91,7 +91,7 @@ class ProjectAgent extends CommandLineAgent {
     }
     final indentString = indentBuffer.toString();
 
-    m?.forEach((k, v) {
+    m.forEach((k, v) {
       buf.write("$indentString$k: ");
       if (v is String) {
         buf.writeln("$v");
@@ -105,14 +105,15 @@ class ProjectAgent extends CommandLineAgent {
   }
 
   String _pubspecContents(
-      String name, Map<String, dynamic> deps, Map<String, dynamic> devDeps) {
+      String name, Map<String, dynamic> deps, Map<String, dynamic> devDeps,
+      {bool nullsafe = true}) {
     return """
 name: $name
 description: desc
 version: 0.0.1
 
 environment:
-  sdk: ">=2.0.0 <3.0.0"
+  sdk: ">=2.${nullsafe ? "12" : "0"}.0 <3.0.0"
 
 dependencies:
 ${_asYaml(deps, indent: 1)}
@@ -170,7 +171,7 @@ class CommandLineAgent {
 
   final Directory workingDirectory;
 
-  static void copyDirectory({@required Uri src, @required Uri dst}) {
+  static void copyDirectory({required Uri src, required Uri dst}) {
     final srcDir = Directory.fromUri(src);
     final dstDir = Directory.fromUri(dst);
     if (!dstDir.existsSync()) {
@@ -259,7 +260,7 @@ Uri: c:/projects/dart-test-terminal/tmp/test_project/lib/
     file.writeAsStringSync(output);
   }
 
-  File getFile(String path) {
+  File? getFile(String path) {
     final pathComponents = path.split("/");
     final relativeDirectoryComponents =
         pathComponents.sublist(0, pathComponents.length - 1);
